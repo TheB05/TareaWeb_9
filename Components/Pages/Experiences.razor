@@ -1,0 +1,66 @@
+@page "/experiences"
+@using TareaWeb_9.Models
+@using TareaWeb_9.Services
+@using TareaWeb_9.Components
+
+<h3>Mis Experiencias de Juego</h3>
+
+<div class="row">
+    @foreach (var experience in experiences)
+    {
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                @if (!string.IsNullOrEmpty(experience.ImageUrl))
+                {
+                    <img src="@experience.ImageUrl" class="card-img-top" alt="@experience.Title">
+                }
+                else
+                {
+                    <img src="https://via.placeholder.com/150" class="card-img-top" alt="@experience.Title">
+                }
+                <div class="card-body">
+                    <h5 class="card-title">@experience.Title</h5>
+                    <p class="card-text">@experience.Description</p>
+                    <p class="card-text">Fecha: @experience.Date.ToString("d")</p>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="mt-3">
+    <button class="btn btn-danger" @onclick="HandlePanicButton">Borrar Todo</button>
+</div>
+
+@code {
+    private List<GameExperience> experiences = new List<GameExperience>();
+
+    [Inject]
+    private AuthService AuthService { get; set; }
+
+    [Inject]
+    private ExperienceService ExperienceService { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await AuthService.GetCurrentUserAsync();
+        experiences = await ExperienceService.GetUserExperiencesAsync(user.Id);
+    }
+
+    private async Task HandlePanicButton()
+    {
+        var user = await AuthService.GetCurrentUserAsync();
+        var password = await PromptPasswordAsync("Ingresa tu contraseña para confirmar");
+        if (password == user.Password)
+        {
+            await ExperienceService.DeleteUserExperiencesAsync(user.Id);
+            experiences.Clear();
+        }
+    }
+
+    private async Task<string> PromptPasswordAsync(string message)
+    {
+        // Implementar la lógica para solicitar la contraseña al usuario
+        return "password";
+    }
+}
